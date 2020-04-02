@@ -49,3 +49,7 @@ For the`C` implementation
                           and B is the number of blocks per dimension (2^B,2^B,2^B)
 
 For the `jl.ipynb`, upload as a new Notebook to google colab and follow the instructions inside
+
+## Results
+Google colab: Tesla P4
+![res.png](https://raw.githubusercontent.com/KonstantinosChatziantoniou/JuliaCUDA_GridKNN/master/res.png)
