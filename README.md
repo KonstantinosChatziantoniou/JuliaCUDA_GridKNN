@@ -1,15 +1,15 @@
 # JuliaCUDA_GridKNN
 
-An implementation of the grid knn for gpgpu, using `CUDAnative` and `CuArrays` for `Julia`.
+An implementation of the grid knn algorithm for gpgpu, using `CUDAnative` and `CuArrays` for `Julia`.
 The aim is to show that Julia for CUDA programming  can achieve not only faster development time, but also equivelent or even
-better results than `C`(the goto language for CUDA kernel programming along with C++).
+better execution time than `C`(the goto language for CUDA kernel programming along with C++).
 
 ## Implementation
-The Points and Queries are assigned to blocks. For each query, we will search the nearest neihgbor in the block of the query and 
+The Points and Queries are assigned to blocks (CPU). For each query, we will search the nearest neihgbor in the block of the query and 
 all the adjacent blocks.
 
 The `Julia/Code/multi_kernel.jl` and the `C` implementations search all the adjacent blocks, 
-whereas the `Julia/Code/multi_kernel_check.jl` checks if the distant of the current neighbour is bigger than the
+whereas the `Julia/Code/multi_kernel_check.jl` checks if the distance of the current neighbour is bigger than the
 distance from the boundaries of the box and skips some block searches.
 
 
