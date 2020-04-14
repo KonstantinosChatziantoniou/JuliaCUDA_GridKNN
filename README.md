@@ -5,6 +5,7 @@ The aim is to show that Julia for CUDA programming  can achieve not only faster 
 better execution time than `C`(the goto language for CUDA kernel programming along with C++).
 
 ## Implementation
+This implementation (both C and Julia) are for k = 1.
 The Points and Queries are assigned to blocks (CPU). For each query, we will search the nearest neihgbor in the block of the query and 
 all the adjacent blocks.
 
