@@ -25,12 +25,12 @@ Returns Distances and Indices for each Nearest Neighbour
 
 ```Julia/Code/```
 
-Contains the preprocessing function definitions and the kernel definitions.
+Contains the preprocessing functions kernel definitions.
 
 
-```C/```
+## C implementaion
 
-Contains the `C` implementation of the grid knn algorithm from this repo [https://github.com/KonstantinosChatziantoniou/GridKnn-Cuda]
+The `C` implementation of the grid knn algorithm is taken from this repo [https://github.com/KonstantinosChatziantoniou/GridKnn-Cuda]
 
 
 ```Notebook```
