@@ -9,8 +9,8 @@ This implementation (both C and Julia) are for k = 1.
 The Points and Queries are assigned to blocks (CPU). For each query, we will search the nearest neihgbor in the block of the query and 
 all the adjacent blocks.
 
-The `Julia/Code/multi_kernel.jl` and the `C` implementations search all the adjacent blocks, 
-whereas the `Julia/Code/multi_kernel_check.jl` checks if the distance of the current neighbour is bigger than the
+There are two implementations, named 'simple' and 'with_skip'. The first one search all the adjacent blocks, 
+whereas the 'with_skip' checks if the distance of the current neighbour is bigger than the
 distance from the boundaries of the box and skips some block searches.
 
 
@@ -30,14 +30,11 @@ Contains the preprocessing functions kernel definitions.
 
 ## C implementaion
 
-The `C` implementation of the grid knn algorithm is taken from this repo [https://github.com/KonstantinosChatziantoniou/GridKnn-Cuda]
+The `C` implementation of the grid knn algorithm is taken and modified from this repo [https://github.com/KonstantinosChatziantoniou/GridKnn-Cuda]
 
+```C/src/```
 
-```Notebook```
-
-Containg a Jyputer notebook to be executed in google colab for execution time benchmarking. The notebook includes scripts for 
-installing cuda and julia in goole colab.
-
+Contains the source code for the kernels.
 
 ## Execution
 
@@ -46,10 +43,11 @@ installing cuda and julia in goole colab.
 For the`C` implementation
 
                       run `make`
-                      run `./mainProgram N B` where N is the number of points (2^N) 
-                          and B is the number of blocks per dimension (2^B,2^B,2^B)
-
-For the `jl.ipynb`, upload as a new Notebook to google colab and follow the instructions inside
+                      run `./mainProgram N B s` where N is the number of points (2^N) 
+                          and B is the number of blocks per dimension (2^B,2^B,2^B) and s is the seed for the 
+                          generation of random points.
+The c implementation saves the points and the results to csv, so they can be given as input to Julia, to benchmark
+on the same dataset and then check the results.
 
 ## Results
 Google colab: Tesla P4
