@@ -1,33 +1,31 @@
 CC = nvcc
-CFLAGS = -O2 --default-stream per-thread  -Xcompiler -fopenmp -lcuda -lcudart 
+CFLAGS = -O3
+CUFLAGS = -O3 -lcuda -lcudart # -Xptxas -v#,-abi=no #Will print the number of lmembytes for each kernel (only if kernel uses LMEM)
 #-std=c99 --default-stream per-thread
 LIBS = -lm #-Wall -Wextra
 OBJDIR = ./bin
 HDRDIR = ./headers
 SRCDIR = ./src
 
-_OBJ =  main.o serialKnn.o pointsHelper.o
+_OBJ =  main.o preprocess.o helpers.o kernel_simple.o kernel_with_skip.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
-_DEPS = serialKnn.h pointsHelper.h
+_DEPS = preprocess.h helpers.h kernel_with_skip.h kernel_simple.h
 DEPS = $(patsubst %, $(HDRDIR)/%, $(_DEPS))
 
 
 mainProgram: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CUFLAGS) $(LIBS)
 
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cu $(DEPS)
-	$(CC) -c -o $@ $<  $(CFLAGS)
+	$(CC) -c -o $@ $<  $(CUFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $<  $(CFLAGS)
+	gcc -Ofast -c -o $@ $<  $(CFLAGS)
 
-
-#bin/cudaWrapper.o: src/cudaWrapper.cu headers/cudaWrapper.h
-#	nvcc  -c -o bin/cudaWrapper.o src/cudaWrapper.cu 
 clean:
-	rm -rf ./*.csv; rm -rf ./bin/*.o
+	rm -rf ./*.csv; rm -rf ./bin/*.o; rm -rf mainProgram
 
 clear: 
-	rm -rf ./*.csv; rm -rf ./PythonCheck/*.csv
+	rm -rf ./*.csv; 
