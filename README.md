@@ -23,9 +23,10 @@ Returns Distances and Indices for each Nearest Neighbour
 
 + `validation.jl` Does everything `main.jl` does. It validates the results using the `NearestNeighbour` package.
 
-```Julia/Code/```
++ `/kernel_**_view_function.jl/`
 
-Contains the preprocessing functions kernel definitions.
+Contains a variation of the kernels,that use @view for every array that is possible and have the distance calculations
+in an external function.
 
 
 ## C implementaion
@@ -38,7 +39,14 @@ Contains the source code for the kernels.
 
 ## Execution
 
-`Julia/main.jl` and `Julia/validation.jl` are ready to be executed as standalone scripts.
+`Julia/main.jl` has two modes
+
++ 1 argument -> grids (2^ )^3. Reads the points and queries csv files located in the Julia/ folder
++ 3 arguments ->  number of points (2^), grids (2^ )^3, seed.  Generates random dataset with the given size.
+
+You can uncomment the kernels you want to run.
+
+`Julia/validate.jl`. Uncomment the ONE kernel you want to validate and run the script without arguments.
 
 For the`C` implementation
 
