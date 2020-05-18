@@ -23,9 +23,7 @@ Returns Distances and Indices for each Nearest Neighbour
 
 + `validation.jl` Does everything `main.jl` does. It validates the results using the `NearestNeighbour` package.
 
-+ `/kernel_**_view_function.jl/`
-
-Contains a variation of the kernels,that use @view for every array that is possible and have the distance calculations
++ `/kernel_**_view_function.jl/` Contains a variation of the kernels,that use @view for every array that is possible and have the distance calculations
 in an external function.
 
 
