@@ -1,5 +1,4 @@
-using CUDAdrv, CUDAnative, CuArrays
-using StaticArrays
+using CUDA
 
 
 @inline function CheckBlockBounds(offset, block, grids)
@@ -21,16 +20,16 @@ end
 
     dx::Float32 = (offset.x == 1)  ? (1/grids - mod(query[1], 1/grids)) : 0
     dx = (offset.x == -1) ? (mod(query[1], 1/grids)) : dx
-    dx = CUDAnative.pow(dx,Int32(2))
+    dx = CUDA.pow(dx,Int32(2))
     dy::Float32 = (offset.y == 1)  ? (1/grids - mod(query[2], 1/grids)) : 0
     dy = (offset.y == -1) ? (mod(query[2], 1/grids)) : dy
-    dy = CUDAnative.pow(dy,Int32(2))
+    dy = CUDA.pow(dy,Int32(2))
     dz::Float32 = (offset.z == 1)  ? (1/grids - mod(query[3], 1/grids)) : 0
     dz = (offset.z == -1) ? (mod(query[3], 1/grids)) : dz
-    dz = CUDAnative.pow(dz,Int32(2))
-    boundsDist::Float32 = CUDAnative.sqrt(dx+dy+dz)
+    dz = CUDA.pow(dz,Int32(2))
+    boundsDist::Float32 = CUDA.sqrt(dx+dy+dz)
     local_skip = boundsDist > dist
-    
+
     return local_skip
 
 end
@@ -91,14 +90,14 @@ function cuGridKnnWithSkip(Points, Queries,
 
                 dx::Float32 = (offset.x == 1)  ? (1/grids - mod(query[1], 1/grids)) : 0
                 dx = (offset.x == -1) ? (mod(query[1], 1/grids)) : dx
-                dx = CUDAnative.pow(dx,Int32(2))
+                dx = CUDA.pow(dx,Int32(2))
                 dy::Float32 = (offset.y == 1)  ? (1/grids - mod(query[2], 1/grids)) : 0
                 dy = (offset.y == -1) ? (mod(query[2], 1/grids)) : dy
-                dy = CUDAnative.pow(dy,Int32(2))
+                dy = CUDA.pow(dy,Int32(2))
                 dz::Float32 = (offset.z == 1)  ? (1/grids - mod(query[3], 1/grids)) : 0
                 dz = (offset.z == -1) ? (mod(query[3], 1/grids)) : dz
-                dz = CUDAnative.pow(dz,Int32(2))
-                boundsDist::Float32 = CUDAnative.sqrt(dx+dy+dz)
+                dz = CUDA.pow(dz,Int32(2))
+                boundsDist::Float32 = CUDA.sqrt(dx+dy+dz)
                 local_skip = boundsDist > dist
         end
 
@@ -123,14 +122,14 @@ function cuGridKnnWithSkip(Points, Queries,
             sync_threads()
             ## Calculate and compare distance
             local_skip && continue
-            bounds::Int32 = CUDAnative.min(stride, totalPoints-p)
+            bounds::Int32 = CUDA.min(stride, totalPoints-p)
             for i::Int32 = 1:bounds
                 tempdist::Float32 = 0
                 for d::Int32 = 1:dimensions
-                    @inbounds tempdist += CUDAnative.pow(query[d]
+                    @inbounds tempdist += CUDA.pow(query[d]
                                         -SharedPoints[d, (i+tid-2)%bounds+1],2)
                 end
-                tempdist = CUDAnative.sqrt(tempdist)
+                tempdist = CUDA.sqrt(tempdist)
                 if tempdist < dist
                     dist = tempdist
                     nb = startPoints + p + (i+tid-2)%bounds+1
@@ -158,7 +157,7 @@ function cuda_knn_with_skip(OrderedPoints, OrderedQueries,
     devQueriesPerBlock = CuArray(QueriesPerBlock)
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
-    devRes = CuArrays.fill(Float32(100), numOfQueries)
+    devRes = CUDA.fill(Float32(100), numOfQueries)
     devNeighbours = CuArray(zeros(Int32, numOfQueries))
     ## Config
     dimensions = Int32(dimensions)

@@ -1,5 +1,4 @@
-using CUDAdrv, CUDAnative, CuArrays
-using StaticArrays
+using CUDA
 
 @inline function CheckBlockBounds(offset, block, grids)
         x::Int32 = offset.x + block.x
@@ -21,14 +20,14 @@ end
 
     dx::Float32 = (offset.x == 1)  ? (gridsize - mod(query[1], gridsize)) : 0
     dx = (offset.x == -1) ? (mod(query[1], gridsize)) : dx
-    dx = CUDAnative.pow(dx,Int32(2))
+    dx = CUDA.pow(dx,Int32(2))
     dy::Float32 = (offset.y == 1)  ? (gridsize - mod(query[2], gridsize)) : 0
     dy = (offset.y == -1) ? (mod(query[2], gridsize)) : dy
-    dy = CUDAnative.pow(dy,Int32(2))
+    dy = CUDA.pow(dy,Int32(2))
     dz::Float32 = (offset.z == 1)  ? (gridsize - mod(query[3], gridsize)) : 0
     dz = (offset.z == -1) ? (mod(query[3], gridsize)) : dz
-    dz = CUDAnative.pow(dz,Int32(2))
-    boundsDist::Float32 = CUDAnative.sqrt(dx+dy+dz)
+    dz = CUDA.pow(dz,Int32(2))
+    boundsDist::Float32 = CUDA.sqrt(dx+dy+dz)
     local_skip = boundsDist > dist
 
     return local_skip
@@ -100,14 +99,14 @@ function cuGridKnnSkipViewFunction(devPoints, devQueries,
             end
             sync_threads()
             local_skip && continue
-            bounds::Int32 = CUDAnative.min(stride, totalPoints-p)
+            bounds::Int32 = CUDA.min(stride, totalPoints-p)
             for i::Int32 in 1:bounds
                 @inbounds point = @view SharedPoints[:, (i+tid-2)%bounds+1]
                 tempdist::Float32 = 0
                 for d::Int32 = 1:dimensions
-                    @inbounds tempdist += CUDAnative.pow(query[d] - point[d], 2)
+                    @inbounds tempdist += CUDA.pow(query[d] - point[d], 2)
                 end
-                tempdist = CUDAnative.sqrt(tempdist)
+                tempdist = CUDA.sqrt(tempdist)
                 if tempdist < dist
                     dist = tempdist
                     nb = startPoints + p + (i+tid-2)%bounds+1
@@ -135,7 +134,7 @@ function cuda_knn_with_skip_view_function(OrderedPoints, OrderedQueries,
     devQueriesPerBlock = CuArray(QueriesPerBlock)
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
-    devRes = CuArrays.fill(Float32(100), numOfQueries)
+    devRes = CUDA.fill(Float32(100), numOfQueries)
     devNeighbours = CuArray(zeros(Int32, numOfQueries))
     ## Config
     dimensions = Int32(dimensions)

@@ -1,5 +1,4 @@
-using CUDAdrv, CUDAnative, CuArrays
-using StaticArrays
+using CUDA
 
 @inline function CheckBlockBounds(offset, block, grids)
         x::Int32 = offset.x + block.x
@@ -20,9 +19,9 @@ end
 @inline function CalcDistance(query, point)
     tempdist = Float32(0)
     for d = 1:length(query)
-        @inbounds tempdist += CUDAnative.pow(query[d] - point[d], 2)
+        @inbounds tempdist += CUDA.pow(query[d] - point[d], 2)
     end
-    tempdist = CUDAnative.sqrt(tempdist)
+    tempdist = CUDA.sqrt(tempdist)
     return tempdist
 end
 
@@ -76,7 +75,7 @@ function cuGridKnnSimpleNoTypesFunction(devPoints, devQueries,
                 end
             end
             sync_threads()
-            bounds = CUDAnative.min(stride, totalPoints-p)
+            bounds = CUDA.min(stride, totalPoints-p)
             for i in 1:bounds
                 @inbounds point = @view SharedPoints[:, (i+tid-2)%bounds+1]
                 tempdist = CalcDistance(query, point)
@@ -101,8 +100,6 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
     numOfPoints, numOfQueries, numOfGrids, dimensions)
 
 
-    CUDAdrv.cache_config!(CUDAdrv.FUNC_CACHE_PREFER_L1)
-    CUDAdrv.FUNC_CACHE_PREFER_L1
     ## Data transfer
     devPoints = CuArray(OrderedPoints)
     devQueries = CuArray(OrderedQueries)
@@ -110,7 +107,7 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
     devQueriesPerBlock = CuArray(QueriesPerBlock)
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
-    devRes = CuArrays.fill(Float32(100), numOfQueries)
+    devRes = CUDA.fill(Float32(100), numOfQueries)
     devNeighbours = CuArray(zeros(Int32, numOfQueries))
     ## Config
     # dimensions = Int32(dimensions)
@@ -119,7 +116,7 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
     thread_groups = 2
     shmem=2*thread_groups*32*dimensions*sizeof(Float32)
     ## Running for main block.
-    @device_code_warntype @cuda(blocks=(grids,grids,grids), threads=(32,thread_groups), shmem=shmem,
+    @cuda(blocks=(grids,grids,grids), threads=(32,thread_groups), shmem=shmem,
       cuGridKnnSimpleNoTypesFunction(devPoints, devQueries,
         devPointsPerBlock, devQueriesPerBlock,
         devIntegralPointsPerBlock, devIntegralQueriesPerBlock,

@@ -1,5 +1,4 @@
-using CUDAdrv, CUDAnative, CuArrays
-using StaticArrays
+using CUDA
 
 @inline function CheckBlockBounds(offset, block, grids)
         x::Int32 = offset.x + block.x
@@ -20,9 +19,9 @@ end
 @inline function CalcDistance(query, point)
     tempdist::Float32 = 0
     for d = 1:length(query)
-        @inbounds tempdist += CUDAnative.pow(query[d] - point[d], 2)
+        @inbounds tempdist += CUDA.pow(query[d] - point[d], 2)
     end
-    tempdist = CUDAnative.sqrt(tempdist)
+    tempdist = CUDA.sqrt(tempdist)
     return tempdist
 end
 
@@ -76,7 +75,7 @@ function cuGridKnnSimpleViewFunction(devPoints, devQueries,
                 end
             end
             sync_threads()
-            bounds::Int32 = CUDAnative.min(stride, totalPoints-p)
+            bounds::Int32 = CUDA.min(stride, totalPoints-p)
             for i::Int32 in 1:bounds
                 @inbounds point = @view SharedPoints[:, (i+tid-2)%bounds+1]
                 tempdist::Float32 = CalcDistance(query, point)
@@ -99,8 +98,7 @@ function cuda_knn_simple_view_function(OrderedPoints, OrderedQueries,
     PointsPerBlock, QueriesPerBlock,
     IntegralPointsPerBlock, IntegralQueriesPerBlock,
     numOfPoints, numOfQueries, numOfGrids, dimensions)
-    CUDAdrv.cache_config!(CUDAdrv.FUNC_CACHE_PREFER_L1)
-    CUDAdrv.FUNC_CACHE_PREFER_L1
+    
     ## Data transfer
     devPoints = CuArray(OrderedPoints)
     devQueries = CuArray(OrderedQueries)
@@ -108,7 +106,7 @@ function cuda_knn_simple_view_function(OrderedPoints, OrderedQueries,
     devQueriesPerBlock = CuArray(QueriesPerBlock)
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
-    devRes = CuArrays.fill(Float32(100), numOfQueries)
+    devRes = CUDA.fill(Float32(100), numOfQueries)
     devNeighbours = CuArray(zeros(Int32, numOfQueries))
     ## Config
     dimensions = Int32(dimensions)

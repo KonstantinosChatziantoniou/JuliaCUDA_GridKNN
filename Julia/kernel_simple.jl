@@ -1,5 +1,4 @@
-using CUDAdrv, CUDAnative, CuArrays
-
+using CUDA
 @inline function CheckBlockBounds(offset, block, grids)
         x::Int32 = offset.x + block.x
         if x < 1 || x > grids
@@ -62,13 +61,13 @@ function cuGridKnnSimple(Points, Queries,
             end
             sync_threads()
             ## Calculate and compare distance
-            bounds::Int32 = CUDAnative.min(stride, totalPoints-p)
+            bounds::Int32 = CUDA.min(stride, totalPoints-p)
             for i::Int32 = 1:bounds
                 tempdist::Float32 = 0
                 for d::Int32 = 1:dimensions
-                    @inbounds tempdist += CUDAnative.pow(SharedQueries[d,tid]-SharedPoints[d, (i+tid-2)%bounds+1],2)
+                    @inbounds tempdist += CUDA.pow(SharedQueries[d,tid]-SharedPoints[d, (i+tid-2)%bounds+1],2)
                 end
-                tempdist = CUDAnative.sqrt(tempdist)
+                tempdist = CUDA.sqrt(tempdist)
                 if tempdist < dist
                     dist = tempdist
                     nb = startPoints + p + (i+tid-2)%bounds+1
@@ -96,7 +95,7 @@ function cuda_knn_simple(OrderedPoints, OrderedQueries,
     devQueriesPerBlock = CuArray(QueriesPerBlock)
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
-    devRes = CuArrays.fill(Float32(100), numOfQueries)
+    devRes = CUDA.fill(Float32(100), numOfQueries)
     devNeighbours = CuArray(zeros(Int32, numOfQueries))
     ## Config
     dimensions = Int32(dimensions)
