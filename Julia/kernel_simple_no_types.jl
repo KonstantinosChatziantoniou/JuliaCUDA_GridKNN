@@ -1,7 +1,7 @@
 using CUDA
 
 @inline function CheckBlockBounds(offset, block, grids)
-        x::Int32 = offset.x + block.x
+        x = offset.x + block.x
         if x < 1 || x > grids
                 return true
         end
@@ -68,20 +68,21 @@ function cuGridKnnSimpleNoTypesFunction(devPoints, devQueries,
             @inbounds nb = Neighbours[tid+q]
         end
         for p in 0:stride:(totalPoints-1)
-            sync_threads()
+
+            CUDA.sync_threads()
             if tid + p <= totalPoints
                 for d in 1:dimensions
                     @inbounds SharedPoints[d, tid] = Points[tid+p, d]
                 end
             end
-            sync_threads()
-            bounds = CUDA.min(stride, totalPoints-p)
+            CUDA.sync_threads()
+            bounds::Int32 = CUDA.min(stride, totalPoints-p)
             for i in 1:bounds
                 @inbounds point = @view SharedPoints[:, (i+tid-2)%bounds+1]
                 tempdist = CalcDistance(query, point)
                 if tempdist < dist
                     dist = tempdist
-                    nb = startPoints + p + (i+tid-2)%bounds+1
+                    nb = Int32(startPoints + p + (i+tid-2)%bounds+1)
                 end
             end
         end
@@ -108,9 +109,10 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
     devIntegralPointsPerBlock = CuArray(IntegralPointsPerBlock)
     devIntegralQueriesPerBlock = CuArray(IntegralQueriesPerBlock)
     devRes = CUDA.fill(Float32(100), numOfQueries)
-    devNeighbours = CuArray(zeros(Int32, numOfQueries))
+    devNeighbours = CUDA.zeros(Int32, numOfQueries)
     ## Config
     # dimensions = Int32(dimensions)
+    dimensions = (dimensions)
     grids = (numOfGrids)
     offset = (x=(0),y=(0),z=(0))
     thread_groups = 2
@@ -120,7 +122,7 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
       cuGridKnnSimpleNoTypesFunction(devPoints, devQueries,
         devPointsPerBlock, devQueriesPerBlock,
         devIntegralPointsPerBlock, devIntegralQueriesPerBlock,
-        devRes, devNeighbours, dimensions, grids, offset))
+        devRes, devNeighbours, dimensions, grids, (x=0,y=0,z=0)))
     #Running for neighbour blocks.
     for x = -1:1
         for y = -1:1
@@ -134,6 +136,7 @@ function cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,
                     devPointsPerBlock, devQueriesPerBlock,
                     devIntegralPointsPerBlock, devIntegralQueriesPerBlock,
                     devRes, devNeighbours, dimensions, grids, offset))
+                
             end
         end
     end
