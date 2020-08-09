@@ -3,8 +3,8 @@ using BenchmarkTools, Statistics
 using Random
 ## Modify for different problem size
 inpGrid = 4
-numOfPoints = 1<<19
-numOfQueries = 1<<19
+numOfPoints = 1<<17
+numOfQueries = 1<<17
 Points = 0
 Queries = 0
 dimensions = 3
@@ -89,6 +89,15 @@ println(gpu_dists[1:10])
 include("kernel_with_skip_view_function.jl")
 println("Running for version with skip and @view and distance calcs in function: ")
 gpu_idxs, gpu_dists = cuda_knn_with_skip_view_function(OrderedPoints, OrderedQueries,PointsPerBlock,
+    QueriesPerBlock, IntegralPointsPerBlock, IntegralQueriesPerBlock,numOfPoints,
+    numOfQueries, numOfGrids, dimensions)
+
+println(gpu_idxs[1:10])
+println(gpu_dists[1:10])
+###############################################
+include("kernel_simple_no_types.jl")
+println("Running for version with no types, skip and @view and distance calcs in function: ")
+gpu_idxs, gpu_dists = cuda_knn_simple_no_types_function(OrderedPoints, OrderedQueries,PointsPerBlock,
     QueriesPerBlock, IntegralPointsPerBlock, IntegralQueriesPerBlock,numOfPoints,
     numOfQueries, numOfGrids, dimensions)
 
